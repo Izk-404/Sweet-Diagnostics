@@ -1,0 +1,1130 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>ふたりの恋愛相性診断 | Sweet Love Test</title>
+    <style>
+        * {
+            box-sizing: border-box;
+            margin: 0;
+            padding: 0;
+            user-select: none;
+        }
+
+        body {
+            font-family: 'Hiragino Kaku Gothic ProN', 'Segoe UI', sans-serif;
+            min-height: 100vh;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            background: linear-gradient(135deg, #ffd1dc 0%, #fff0f5 100%);
+            color: #4a4a4a;
+            overflow-x: hidden;
+            transition: background 0.8s ease, color 0.8s ease, filter 0.8s ease;
+            position: relative;
+        }
+
+        /* Q11で背景を少し明るく調整した赤黒さに変革 */
+        body.dark-mode {
+            background: linear-gradient(135deg, #0d0202 0%, #200404 100%) !important;
+            color: #d14141 !important;
+            filter: brightness(0.72) contrast(1.3);
+        }
+
+        /* 砂嵐・文字化けノイズ発生中の画面全体が震えるクラス */
+        body.screen-shake {
+            animation: screen-jitter 0.12s infinite alternate;
+        }
+
+        @keyframes screen-jitter {
+            0% { transform: translate(0.3px, 0.3px) rotate(0deg); }
+            20% { transform: translate(-0.6px, -0.3px) rotate(-0.1deg); }
+            40% { transform: translate(-0.3px, 0.6px) rotate(0.1deg); }
+            60% { transform: translate(0.6px, 0.3px) rotate(0deg); }
+            80% { transform: translate(0.3px, -0.6px) rotate(-0.1deg); }
+            100% { transform: translate(-0.6px, -0.3px) rotate(0.1deg); }
+        }
+
+        /* 砂嵐ノイズオーバーレイ */
+        #noise-overlay {
+            position: fixed;
+            top: 0; left: 0; width: 100vw; height: 100vh;
+            pointer-events: none;
+            z-index: 999;
+            opacity: 0;
+            background: 
+                repeating-radial-gradient(circle at 50% 50%, rgba(255,255,255,0.8), rgba(0,0,0,0.9) 1px, transparent 2px),
+                repeating-linear-gradient(0deg, rgba(0,0,0,0.4), rgba(255,255,255,0.4) 1px, transparent 2px);
+            mix-blend-mode: hard-light;
+        }
+
+        /* ノイズ文字割り込み用 */
+        #glitch-overlay-text {
+            position: absolute;
+            top: 10px;
+            right: 15px;
+            color: #8b0000;
+            font-family: monospace;
+            font-size: 0.8rem;
+            pointer-events: none;
+            opacity: 0;
+        }
+
+        /* 血の跡（シミ）背景 */
+        #blood-overlay {
+            position: fixed;
+            top: 0; left: 0; width: 100vw; height: 100vh;
+            pointer-events: none;
+            z-index: 1;
+            opacity: 0;
+            transition: opacity 1s ease;
+            background-image: 
+                radial-gradient(circle at 15% 20%, rgba(139,0,0,0.5) 0%, transparent 25%),
+                radial-gradient(circle at 85% 80%, rgba(100,0,0,0.6) 0%, transparent 30%),
+                radial-gradient(circle at 50% 90%, rgba(80,0,0,0.7) 0%, transparent 20%);
+        }
+
+        #app-container {
+            width: 90%;
+            max-width: 500px;
+            background: rgba(255, 255, 255, 0.95);
+            border-radius: 20px;
+            padding: 30px 25px;
+            box-shadow: 0 10px 30px rgba(255, 182, 193, 0.4);
+            border: 2px solid #fff;
+            position: relative;
+            z-index: 2;
+            transition: all 0.5s ease;
+        }
+
+        body.dark-mode #app-container {
+            background: rgba(25, 8, 8, 0.92) !important;
+            border: 2px solid #5a1515 !important;
+            box-shadow: 0 0 25px rgba(180, 0, 0, 0.5) !important;
+        }
+
+        /* Q11で明朝体に変更するクラス */
+        .mincho-font, .mincho-font * {
+            font-family: 'Yu Mincho', 'Hiragino Mincho ProN', 'MS PMincho', serif !important;
+        }
+
+        .header-title {
+            text-align: center;
+            font-size: 1.5rem;
+            color: #ff6b81;
+            margin-bottom: 8px;
+            font-weight: bold;
+        }
+
+        body.dark-mode .header-title {
+            color: #e53935;
+        }
+
+        .sub-title {
+            text-align: center;
+            font-size: 0.85rem;
+            color: #888;
+            margin-bottom: 20px;
+        }
+
+        body.dark-mode .sub-title {
+            color: #885555;
+        }
+
+        .progress-bar-container {
+            width: 100%;
+            height: 8px;
+            background: #ffe4e1;
+            border-radius: 4px;
+            margin-bottom: 25px;
+            overflow: hidden;
+        }
+
+        body.dark-mode .progress-bar-container {
+            background: #331111;
+        }
+
+        .progress-bar {
+            height: 100%;
+            width: 0%;
+            background: linear-gradient(90deg, #ff758c, #ff7eb3);
+            transition: width 0.4s ease, background 0.5s ease;
+        }
+
+        body.dark-mode .progress-bar {
+            background: linear-gradient(90deg, #a30000, #d32f2f);
+        }
+
+        .meta-info {
+            display: flex;
+            justify-content: space-between;
+            font-size: 0.8rem;
+            color: #aaa;
+            margin-bottom: 15px;
+        }
+
+        body.dark-mode .meta-info {
+            color: #996666;
+        }
+
+        .question-text {
+            font-size: 1.15rem;
+            line-height: 1.5;
+            color: #333;
+            margin-bottom: 25px;
+            min-height: 55px;
+            font-weight: 600;
+        }
+
+        body.dark-mode .question-text {
+            color: #ff6666;
+        }
+
+        .input-group {
+            display: flex;
+            flex-direction: column;
+            gap: 12px;
+        }
+
+        input[type="text"] {
+            width: 100%;
+            padding: 14px;
+            border: 2px solid #ffd1dc;
+            border-radius: 12px;
+            font-size: 1rem;
+            outline: none;
+            transition: border 0.3s;
+        }
+
+        input[type="text"]:focus {
+            border-color: #ff6b81;
+        }
+
+        .opt-btn {
+            width: 100%;
+            padding: 14px;
+            background: #fff0f3;
+            border: 2px solid #ffccd5;
+            border-radius: 12px;
+            font-size: 0.95rem;
+            color: #4a4a4a;
+            cursor: pointer;
+            text-align: left;
+            transition: all 0.2s;
+            font-weight: 500;
+        }
+
+        body.dark-mode .opt-btn {
+            background: #240c0c;
+            border-color: #631d1d;
+            color: #ff8080;
+        }
+
+        /* 1回目のタップ（選択中スタイル） */
+        .opt-btn.selected {
+            background: #ff4757;
+            color: #fff;
+            border-color: #ff4757;
+            transform: translateY(-2px);
+        }
+
+        body.dark-mode .opt-btn.selected {
+            background: #631d1d;
+            border-color: #a30000;
+            color: #ffffff;
+        }
+
+        .next-btn {
+            margin-top: 20px;
+            width: 100%;
+            padding: 14px;
+            background: linear-gradient(90deg, #ff758c, #ff7eb3);
+            border: none;
+            border-radius: 12px;
+            color: white;
+            font-size: 1rem;
+            font-weight: bold;
+            cursor: pointer;
+            box-shadow: 0 4px 15px rgba(255, 117, 140, 0.4);
+            transition: opacity 0.2s, transform 0.2s;
+        }
+
+        .next-btn:hover {
+            opacity: 0.9;
+            transform: translateY(-2px);
+        }
+
+        /* 「もう一度出逢う」ボタン用スタイル */
+        .restart-btn {
+            margin-top: 20px;
+            width: 100%;
+            padding: 12px;
+            background: transparent;
+            border: 1px solid #8b0000;
+            border-radius: 8px;
+            color: #ff9999;
+            font-size: 0.9rem;
+            font-weight: bold;
+            cursor: pointer;
+            transition: all 0.2s;
+            font-family: 'Yu Mincho', 'Hiragino Mincho ProN', serif;
+        }
+
+        .restart-btn:hover {
+            background: rgba(139, 0, 0, 0.3);
+            color: #ffffff;
+        }
+
+        .screen {
+            display: none;
+        }
+
+        .screen.active {
+            display: block;
+        }
+
+        /* --- ホラー演出用キャンバス --- */
+        #horror-canvas {
+            display: none;
+            position: fixed;
+            top: 0; left: 0;
+            width: 100vw; height: 100vh;
+            background: #000;
+            z-index: 9999;
+            flex-direction: column;
+            justify-content: center;
+            align-items: center;
+            padding: 20px;
+            overflow: hidden;
+        }
+
+        /* 「逃げるな」画面埋め尽くし用 */
+        #run-away-wall {
+            position: absolute;
+            top: 0; left: 0;
+            width: 100%; height: 100%;
+            word-break: break-all;
+            color: #ff0000;
+            font-size: 1.8rem;
+            font-weight: bold;
+            line-height: 1.1;
+            opacity: 0;
+            overflow: hidden;
+            z-index: 10000;
+            background: #000;
+            font-family: monospace, sans-serif;
+            text-shadow: 0 0 8px #ff0000;
+        }
+
+        .horror-text {
+            color: #ff0000;
+            font-family: 'Courier New', monospace;
+            font-size: 1.4rem;
+            line-height: 1.8;
+            text-align: center;
+            text-shadow: 0 0 10px #ff0000;
+            white-space: pre-wrap;
+            max-width: 800px;
+        }
+
+        /* 暗闇の中にタイピングされる「ずっと一緒だよ」 */
+        #together-text {
+            display: none;
+            color: #ff0000;
+            font-family: 'Yu Mincho', 'Hiragino Mincho ProN', 'MS PMincho', serif;
+            font-size: 2.2rem;
+            font-weight: bold;
+            letter-spacing: 4px;
+            text-shadow: 0 0 15px #ff0000, 0 0 30px #8b0000;
+            z-index: 10001;
+            min-height: 50px;
+        }
+
+        /* フェードイン対応の「相性診断結果」ウィンドウ */
+        .result-box {
+            width: 90%;
+            max-width: 450px;
+            background: rgba(15, 0, 0, 0.95);
+            border: 2px solid #8b0000;
+            border-radius: 12px;
+            padding: 25px;
+            box-shadow: 0 0 30px rgba(255, 0, 0, 0.4);
+            display: none;
+            opacity: 0;
+            transition: opacity 1.5s ease;
+            z-index: 10002;
+            font-family: 'Yu Mincho', 'Hiragino Mincho ProN', serif;
+            color: #ffcccc;
+            text-align: left;
+        }
+
+        .result-box.fade-in {
+            opacity: 1;
+        }
+
+        .result-title {
+            text-align: center;
+            font-size: 1.3rem;
+            color: #ff3333;
+            border-bottom: 1px solid #5a1515;
+            padding-bottom: 10px;
+            margin-bottom: 15px;
+            letter-spacing: 2px;
+            font-weight: bold;
+        }
+
+        .result-content {
+            font-size: 0.95rem;
+            line-height: 1.8;
+            color: #ffcccc;
+        }
+
+        /* プレイヤー名や指定タイトルのスタイル（白色かつ太字） */
+        .highlight-target {
+            color: #ffffff !important;
+            font-weight: bold !important;
+        }
+
+        /* --- 10問目の絶対変更しないグリッチノイズ（グリッチ維持部分用） --- */
+        .glitch-noise-text {
+            display: inline-block;
+            font-weight: bold;
+            animation: tv-subtle-glitch 0.35s infinite steps(2);
+        }
+
+        @keyframes tv-subtle-glitch {
+            0% {
+                color: #ffffff;
+                text-shadow: 1px 0 #000000;
+                transform: translate(0, 0) scaleX(1);
+            }
+            33% {
+                color: #cccccc;
+                text-shadow: 3px 0 #000000, -2px 0 #ffffff;
+                transform: translate(-1px, 0) scaleX(1.03);
+            }
+            66% {
+                color: #aaaaaa;
+                text-shadow: -2px 0 #ffffff, 2px 0 #000000;
+                transform: translate(1px, 0) scaleX(0.98);
+            }
+            100% {
+                color: #ffffff;
+                text-shadow: 0 0 #000000;
+                transform: translate(0, 0) scaleX(1);
+            }
+        }
+
+        /* --- 最終診断結果画面専用：三原色のグリッチノイズ --- */
+        .result-glitch-text {
+            display: inline-block;
+            font-weight: bold;
+            animation: rgb-white-noise-glitch 0.28s infinite steps(2);
+        }
+
+        @keyframes rgb-white-noise-glitch {
+            0% {
+                color: #ffffff;
+                text-shadow: 2px 0 #ff0000, -2px 0 #00ffff;
+                transform: skewX(0deg) scale(1);
+            }
+            25% {
+                color: #00ff00;
+                text-shadow: -2px -2px #ffffff, 2px 2px #000000;
+                transform: skewX(-8deg) scale(1.05, 0.95);
+            }
+            50% {
+                color: #00ff00;
+                text-shadow: 3px 1px #ff00ff, -3px -1px #ffff00;
+                transform: skewX(6deg) scale(0.95, 1.05);
+            }
+            75% {
+                color: #ff0000;
+                text-shadow: 0 0 6px #ffffff, 0 0 10px #00ffff;
+                transform: skewX(-4deg) scale(1.02);
+            }
+            100% {
+                color: #ffffff;
+                text-shadow: -2px 1px #00ff00, 2px -1px #ff00ff;
+                transform: skewX(5deg) scale(0.98);
+            }
+        }
+    </style>
+</head>
+<body>
+
+    <div id="noise-overlay"></div>
+    <div id="blood-overlay"></div>
+
+    <div id="app-container">
+        <div id="glitch-overlay-text"></div>
+
+        <!-- スタート画面 -->
+        <div id="start-screen" class="screen active">
+            <div class="header-title">💞 ふたりの相性診断 💞</div>
+            <div class="sub-title">～2人の未来と深層心理をチェック～</div>
+            <p style="text-align: center; font-size: 0.95rem; line-height: 1.6; margin-bottom: 25px;">
+                直感で質問に答えてね！<br>
+                2人の隠された相性が分かります♡<br>
+                （所要時間：約3分）
+            </p>
+            <button class="next-btn" style="font-weight: bold;" onclick="startQuiz()">診断スタート</button>
+        </div>
+
+        <!-- 質問画面 -->
+        <div id="quiz-screen" class="screen">
+            <div class="header-title" id="quiz-title">ふたりの相性診断</div>
+            <div class="meta-info">
+                <span id="q-counter">Q 1 / 5</span>
+                <span>Sweet Diagnostics</span>
+            </div>
+            <div class="progress-bar-container">
+                <div class="progress-bar" id="progress-bar"></div>
+            </div>
+
+            <div class="question-text" id="q-text">質問テキスト</div>
+            <div class="input-group" id="input-container"></div>
+        </div>
+
+        <!-- 診断中ロード画面 -->
+        <div id="loading-screen" class="screen">
+            <div class="header-title">診断結果を計算中…</div>
+            <p style="text-align: center; margin-top: 30px; font-size: 1.1rem;" id="loading-text">
+                もうすこしです。
+            </p>
+        </div>
+    </div>
+
+    <!-- ホラー演出用フルスクリーンキャンバス -->
+    <div id="horror-canvas">
+        <div id="run-away-wall"></div>
+        <div class="horror-text" id="horror-typewriter"></div>
+        <div id="together-text"></div>
+
+        <!-- 最終「相性診断結果」ウィンドウ -->
+        <div class="result-box" id="result-box">
+            <div class="result-title">【相性診断結果】</div>
+            <div class="result-content" id="result-content-text">
+                対象者：<span id="res-name" class="highlight-target"></span> 様<br><br>
+                <span id="random-result-text"></span><br><br>
+                ──もう、どこにも逃げることはできません。ずっと一緒です。
+            </div>
+            <button class="restart-btn" onclick="resetToStart()">もう一度出逢う</button>
+        </div>
+    </div>
+
+    <script>
+        let audioCtx = null;
+        let isBgmPlaying = false;
+        let bgmTimer = null;
+        let activeTvNoiseNode = null;
+        let activeDroneNode = null;
+        let activeDroneGain = null;
+        let musicBoxInterval = null;
+
+        function initAudio() {
+            if (!audioCtx) {
+                audioCtx = new (window.AudioContext || window.webkitAudioContext)();
+            }
+            if (audioCtx.state === 'suspended') {
+                audioCtx.resume();
+            }
+        }
+
+        function playTone(freq, duration = 0.4, time = 0) {
+            if (!audioCtx) return;
+            const now = audioCtx.currentTime + time;
+            const osc = audioCtx.createOscillator();
+            const osc2 = audioCtx.createOscillator();
+            const gain = audioCtx.createGain();
+
+            osc.type = 'triangle';
+            osc2.type = 'sine';
+
+            osc.frequency.setValueAtTime(freq, now);
+            osc2.frequency.setValueAtTime(freq * 2, now);
+
+            gain.gain.setValueAtTime(0, now);
+            gain.gain.linearRampToValueAtTime(0.2, now + 0.02);
+            gain.gain.exponentialRampToValueAtTime(0.0001, now + duration);
+
+            osc.connect(gain);
+            osc2.connect(gain);
+            gain.connect(audioCtx.destination);
+
+            osc.start(now);
+            osc2.start(now);
+            osc.stop(now + duration);
+            osc2.stop(now + duration);
+        }
+
+        const melodySequence = [
+            { freq: 523.25, time: 0 },    { freq: 659.25, time: 0.25 }, { freq: 783.99, time: 0.5 },  { freq: 1046.50, time: 0.75 },
+            { freq: 440.00, time: 1.0 },  { freq: 523.25, time: 1.25 }, { freq: 659.25, time: 1.5 },  { freq: 880.00, time: 1.75 },
+            { freq: 349.23, time: 2.0 },  { freq: 440.00, time: 2.25 }, { freq: 523.25, time: 2.5 },  { freq: 698.46, time: 2.75 },
+            { freq: 392.00, time: 3.0 },  { freq: 493.88, time: 3.25 }, { freq: 587.33, time: 3.5 },  { freq: 783.99, time: 3.75 }
+        ];
+
+        function startPopBGM() {
+            initAudio();
+            if (isBgmPlaying) return;
+            isBgmPlaying = true;
+            function playLoop() {
+                if (!isBgmPlaying) return;
+                melodySequence.forEach(note => playTone(note.freq, 0.45, note.time));
+                bgmTimer = setTimeout(playLoop, 4000);
+            }
+            playLoop();
+        }
+
+        function stopPopBGM() {
+            isBgmPlaying = false;
+            if (bgmTimer) {
+                clearTimeout(bgmTimer);
+                bgmTimer = null;
+            }
+        }
+
+        function playMusicBoxNote(freq, duration = 0.8) {
+            if (!audioCtx) return;
+            const now = audioCtx.currentTime;
+            const osc = audioCtx.createOscillator();
+            const gain = audioCtx.createGain();
+
+            osc.type = 'sine';
+            osc.frequency.setValueAtTime(freq, now);
+
+            gain.gain.setValueAtTime(0, now);
+            gain.gain.linearRampToValueAtTime(0.15, now + 0.03);
+            gain.gain.exponentialRampToValueAtTime(0.0001, now + duration);
+
+            osc.connect(gain);
+            gain.connect(audioCtx.destination);
+
+            osc.start(now);
+            osc.stop(now + duration);
+        }
+
+        function startCreepyMusicBox() {
+            initAudio();
+            if (musicBoxInterval) return;
+
+            const boxNotes = [
+                440.00, 523.25, 659.25, 523.25,
+                392.00, 493.88, 587.33, 493.88,
+                349.23, 440.00, 523.25, 440.00,
+                329.63, 415.30, 493.88, 415.30
+            ];
+            let noteIdx = 0;
+
+            function loopBox() {
+                playMusicBoxNote(boxNotes[noteIdx], 1.2);
+                noteIdx = (noteIdx + 1) % boxNotes.length;
+            }
+
+            loopBox();
+            musicBoxInterval = setInterval(loopBox, 600);
+        }
+
+        function stopCreepyMusicBox() {
+            if (musicBoxInterval) {
+                clearInterval(musicBoxInterval);
+                musicBoxInterval = null;
+            }
+        }
+
+        function playHorrorDrone() {
+            initAudio();
+            if (activeDroneNode) return;
+
+            const osc = audioCtx.createOscillator();
+            const gain = audioCtx.createGain();
+            osc.type = 'sawtooth';
+            osc.frequency.setValueAtTime(55, audioCtx.currentTime);
+            
+            const lfo = audioCtx.createOscillator();
+            lfo.frequency.setValueAtTime(3, audioCtx.currentTime);
+            const lfoGain = audioCtx.createGain();
+            lfoGain.gain.setValueAtTime(10, audioCtx.currentTime);
+            lfo.connect(osc.frequency);
+            lfo.start();
+
+            gain.gain.setValueAtTime(0.01, audioCtx.currentTime);
+            gain.gain.exponentialRampToValueAtTime(0.25, audioCtx.currentTime + 3);
+
+            osc.connect(gain);
+            gain.connect(audioCtx.destination);
+            osc.start();
+
+            activeDroneNode = osc;
+            activeDroneGain = gain;
+        }
+
+        function stopHorrorDrone() {
+            if (activeDroneNode && audioCtx) {
+                try {
+                    activeDroneGain.gain.linearRampToValueAtTime(0.0001, audioCtx.currentTime + 0.3);
+                    setTimeout(() => {
+                        activeDroneNode.stop();
+                        activeDroneNode.disconnect();
+                        activeDroneNode = null;
+                        activeDroneGain = null;
+                    }, 300);
+                } catch(e) {
+                    activeDroneNode = null;
+                    activeDroneGain = null;
+                }
+            }
+        }
+
+        function playGlitchSound() {
+            if (!audioCtx) return;
+            const bufferSize = audioCtx.sampleRate * 0.08;
+            const buffer = audioCtx.createBuffer(1, bufferSize, audioCtx.sampleRate);
+            const data = buffer.getChannelData(0);
+            for (let i = 0; i < bufferSize; i++) {
+                data[i] = Math.random() * 2 - 1;
+            }
+            const noise = audioCtx.createBufferSource();
+            noise.buffer = buffer;
+            const gain = audioCtx.createGain();
+            gain.gain.setValueAtTime(0.3, audioCtx.currentTime);
+            noise.connect(gain);
+            gain.connect(audioCtx.destination);
+            noise.start();
+        }
+
+        function playSustainedNoise(durationSec) {
+            if (!audioCtx) return null;
+            const bufferSize = audioCtx.sampleRate * durationSec;
+            const buffer = audioCtx.createBuffer(1, bufferSize, audioCtx.sampleRate);
+            const data = buffer.getChannelData(0);
+            for (let i = 0; i < bufferSize; i++) {
+                data[i] = Math.random() * 2 - 1;
+            }
+            const noise = audioCtx.createBufferSource();
+            noise.buffer = buffer;
+            const gain = audioCtx.createGain();
+            gain.gain.setValueAtTime(0.25, audioCtx.currentTime);
+            noise.connect(gain);
+            gain.connect(audioCtx.destination);
+            noise.start();
+            return noise;
+        }
+
+        // 質問定義
+        const questions = [
+            { id: 1, displayNum: "Q 1 / 5", progress: 20, text: "あなたのお名前（ニックネーム）を教えてください。", type: "text", placeholder: "例：たろう" },
+            { id: 2, displayNum: "Q 2 / 5", progress: 40, text: "パートナーのどんな仕草に一番キュンとする？", type: "choice", options: ["ふと見せてくれる笑顔", "照れくさそうにはにかむ姿", "真剣な表情で何かに集中している時", "自分の目をじっと見つめてくるとき"] },
+            { id: 3, displayNum: "Q 3 / 5", progress: 60, text: "理想のデートスポットを選ぶならどれ？", type: "choice", options: ["まったりおうちデート", "遊園地やテーマパーク", "おしゃれなカフェ巡り", "夜景の見えるドライブ"] },
+            { id: 4, displayNum: "Q 四 / 5", progress: 60, text: "今, あなたは見えていますか？", type: "choice", options: ["はい", "いいえ"] },
+            { id: 5, displayNum: "Q 4 / 5", progress: 80, text: "相手のどこに一番惹かれる？", type: "choice", options: ["優しくて誠実なところ", "一緒にいて楽しい笑顔", "たまに見せるギャップ", "自分のことを理解してくれるところ"] },
+            { id: 6, displayNum: "Q 5 / 5", progress: 100, text: "カップルで長く一緒に過ごすために、一番大切にしたいことは？", type: "choice", options: ["お互いを思いやる気持ち", "嘘をつかない誠実さ", "適度な距離感と自由", "感謝を言葉で伝えること"] },
+            // --- 7問目以降 ---
+            { id: 7, displayNum: "", progress: 100, text: "今、あなたはひとりですか？", type: "choice", options: ["はい", "いいえ", "そんな気がする", "たぶん違う"] },
+            { id: 8, displayNum: "", progress: 100, text: "『幸せ』とはわたしにとって似て非なるものですか？", type: "choice", options: ["はい", "いいえ", "わからない", "この分際に非ず"] },
+            { id: 9, displayNum: "", progress: 100, text: "沈黙が怖いと理解し終わった時、あなたの脳は左向きかつ白紙に沈み始めていますか？", type: "choice", options: ["はい", "いいえ", "わからない", "時間に濁ってしまった"] },
+            { id: 10, displayNum: "", progress: 100, text: 'あなたが<span id="target-noise-1">大切を仕舞い込む人間</span>と、<span class="glitch-noise-text">螻ｱ鄒翫ヮ螳ｴ</span>は<span id="target-noise-2">聞こえてはいけない</span>と聞こえていますか？', type: "choice", options: ["はい", "いいえ", "その通り", '<span class="glitch-noise-text">莉ｰ縺帙ヮ縺ｾ縺ｾ縺ｫ</span>'] },
+            { id: 11, displayNum: "", progress: 100, text: "あなたは『それ』に気づいていますね", type: "choice", options: ["はい", "はい"] }
+        ];
+
+        let currentQIndex = 0;
+        let userName = "あなた";
+        let glitchTimeout = null;
+        let tvNoiseTimeout = null;
+        let textNoiseInterval = null;
+
+        function startQuiz() {
+            startPopBGM();
+            document.getElementById('start-screen').classList.remove('active');
+            document.getElementById('quiz-screen').classList.add('active');
+            renderQuestion();
+        }
+
+        // --- リセットして最初の画面に戻る関数（全ての状態と演出要素を完全に初期化） ---
+        function resetToStart() {
+            stopPopBGM();
+            stopHorrorDrone();
+            stopCreepyMusicBox();
+            stopTvNoiseEffect();
+            stopGlitchLoop();
+
+            currentQIndex = 0;
+            userName = "あなた";
+
+            document.body.classList.remove('dark-mode');
+            document.body.classList.remove('screen-shake');
+            document.getElementById('app-container').classList.remove('mincho-font');
+            document.getElementById('blood-overlay').style.opacity = '0';
+            document.getElementById('blood-overlay').style.display = 'block';
+            document.getElementById('app-container').style.display = 'block';
+
+            const resultBox = document.getElementById('result-box');
+            resultBox.classList.remove('fade-in');
+            resultBox.style.display = 'none';
+
+            // 「逃げるな」壁要素を再プレイ時に再び表示できるように完全リセット
+            const wall = document.getElementById('run-away-wall');
+            wall.style.display = 'block';
+            wall.style.opacity = '0';
+            wall.textContent = '';
+
+            const typewriter = document.getElementById('horror-typewriter');
+            typewriter.style.display = 'block';
+            typewriter.textContent = '';
+
+            document.getElementById('together-text').style.display = 'none';
+            document.getElementById('together-text').textContent = '';
+
+            document.getElementById('horror-canvas').style.display = 'none';
+            document.getElementById('loading-screen').classList.remove('active');
+            document.getElementById('quiz-screen').classList.remove('active');
+            document.getElementById('start-screen').classList.add('active');
+        }
+
+        function triggerFlashNoise() {
+            const noise = document.getElementById('noise-overlay');
+            noise.style.opacity = '0.95';
+            document.body.classList.add('screen-shake');
+            playGlitchSound();
+            setTimeout(() => { 
+                noise.style.opacity = '0'; 
+                document.body.classList.remove('screen-shake');
+            }, 180);
+        }
+
+        function scheduleRandomTvNoise() {
+            if (tvNoiseTimeout) clearTimeout(tvNoiseTimeout);
+            
+            const nextDelay = Math.random() * 1000 + 500;
+            
+            tvNoiseTimeout = setTimeout(() => {
+                const noiseOverlay = document.getElementById('noise-overlay');
+                const duration = Math.random() * 1000 + 300;
+
+                noiseOverlay.style.opacity = (Math.random() * 0.4 + 0.6).toString();
+                document.body.classList.add('screen-shake');
+                activeTvNoiseNode = playSustainedNoise(duration / 1000);
+
+                setTimeout(() => {
+                    noiseOverlay.style.opacity = '0';
+                    document.body.classList.remove('screen-shake');
+                    activeTvNoiseNode = null;
+                    if (currentQIndex >= 9 && currentQIndex < 10) {
+                        scheduleRandomTvNoise();
+                    }
+                }, duration);
+            }, nextDelay);
+        }
+
+        function stopTvNoiseEffect() {
+            if (tvNoiseTimeout) {
+                clearTimeout(tvNoiseTimeout);
+                tvNoiseTimeout = null;
+            }
+            if (activeTvNoiseNode) {
+                try { activeTvNoiseNode.stop(); } catch(e){}
+                activeTvNoiseNode = null;
+            }
+            document.getElementById('noise-overlay').style.opacity = '0';
+            document.body.classList.remove('screen-shake');
+        }
+
+        function stopGlitchLoop() {
+            if (glitchTimeout) { clearTimeout(glitchTimeout); glitchTimeout = null; }
+            if (textNoiseInterval) { clearInterval(textNoiseInterval); textNoiseInterval = null; }
+            document.body.classList.remove('screen-shake');
+        }
+
+        // --- 文字の一部だけが文字化けする安全な置換処理 ---
+        function applyPartialNoise(originalStr, chars) {
+            let arr = originalStr.split('');
+            for (let i = 0; i < arr.length; i++) {
+                if (Math.random() < 0.2) {
+                    arr[i] = chars.charAt(Math.floor(Math.random() * chars.length));
+                }
+            }
+            return arr.join('');
+        }
+
+        function scheduleRandomGlitchNoise(targetSelector, originalTexts) {
+            stopGlitchLoop();
+
+            function loop() {
+                const nextDelay = Math.random() * 1000 + 400;
+
+                glitchTimeout = setTimeout(() => {
+                    const durationMs = Math.random() * 900 + 100;
+                    const durationSec = durationMs / 1000;
+
+                    const noiseNode = playSustainedNoise(durationSec);
+                    const chars = "†‡¶§10莉ｰ縺帙ヮ縺";
+                    
+                    document.body.classList.add('screen-shake');
+
+                    textNoiseInterval = setInterval(() => {
+                        if (currentQIndex === 8) {
+                            const textElem = document.getElementById(targetSelector);
+                            if(textElem) textElem.innerText = applyPartialNoise(originalTexts, chars);
+                        } else if (currentQIndex === 9) {
+                            const el1 = document.getElementById('target-noise-1');
+                            const el2 = document.getElementById('target-noise-2');
+                            if(el1 && el2) {
+                                el1.innerText = applyPartialNoise(originalTexts[0], chars);
+                                el2.innerText = applyPartialNoise(originalTexts[1], chars);
+                            }
+                        }
+                    }, 60);
+
+                    setTimeout(() => {
+                        clearInterval(textNoiseInterval);
+                        textNoiseInterval = null;
+                        if (currentQIndex === 8) {
+                            const textElem = document.getElementById(targetSelector);
+                            if(textElem) textElem.innerText = originalTexts;
+                        } else if (currentQIndex === 9) {
+                            const el1 = document.getElementById('target-noise-1');
+                            const el2 = document.getElementById('target-noise-2');
+                            if(el1 && el2) {
+                                el1.innerText = originalTexts[0];
+                                el2.innerText = originalTexts[1];
+                            }
+                        }
+                        document.body.classList.remove('screen-shake');
+                        if (noiseNode) { try { noiseNode.stop(); } catch(e){} }
+                        if (currentQIndex === 8 || currentQIndex === 9) loop();
+                    }, durationMs);
+                }, nextDelay);
+            }
+
+            loop();
+        }
+
+        function renderQuestion() {
+            const q = questions[currentQIndex];
+
+            stopGlitchLoop();
+            stopTvNoiseEffect();
+
+            if (q.id === 8) {
+                document.getElementById('blood-overlay').style.opacity = '1';
+                triggerFlashNoise();
+            } else if (q.id === 9) {
+                scheduleRandomGlitchNoise('q-text', q.text);
+            } else if (q.id === 10) {
+                scheduleRandomTvNoise();
+                scheduleRandomGlitchNoise(null, ["大切を仕舞い込む人間", "聞こえてはいけない"]);
+            } else if (q.id === 11) {
+                document.body.classList.add('dark-mode');
+                document.getElementById('app-container').classList.add('mincho-font');
+                triggerFlashNoise();
+            }
+
+            const counterElem = document.getElementById('q-counter');
+            if (q.displayNum === "") {
+                counterElem.style.display = 'none';
+            } else {
+                counterElem.style.display = 'inline';
+                counterElem.innerText = q.displayNum;
+            }
+
+            // 進捗バーの色変化（7問目までは変化なし、8問目から徐々に赤黒く変化）
+            const progressBar = document.getElementById('progress-bar');
+            progressBar.style.width = q.progress + '%';
+
+            if (currentQIndex === 7) {
+                progressBar.style.background = 'linear-gradient(90deg, #b30000, #d93636)';
+            } else if (currentQIndex === 8) {
+                progressBar.style.background = 'linear-gradient(90deg, #8a0000, #b32424)';
+            } else if (currentQIndex >= 9) {
+                progressBar.style.background = 'linear-gradient(90deg, #380000, #5c0f0f)';
+            } else {
+                progressBar.style.background = 'linear-gradient(90deg, #ff758c, #ff7eb3)';
+            }
+            
+            if (q.id === 10) {
+                document.getElementById('q-text').innerHTML = q.text;
+            } else {
+                document.getElementById('q-text').innerText = q.text;
+            }
+
+            const container = document.getElementById('input-container');
+            container.innerHTML = '';
+
+            if (q.type === 'text') {
+                const input = document.createElement('input');
+                input.type = 'text';
+                input.id = 'user-input';
+                input.placeholder = q.placeholder;
+                container.appendChild(input);
+
+                const btn = document.createElement('button');
+                btn.className = 'next-btn';
+                btn.innerText = '次へ進む';
+                btn.onclick = () => {
+                    const val = document.getElementById('user-input').value.trim();
+                    if (q.id === 1 && val !== '') userName = val;
+                    if (q.id === 6) {
+                        stopPopBGM();
+                    }
+                    nextQuestion();
+                };
+                container.appendChild(btn);
+            } else if (q.type === 'choice') {
+                q.options.forEach(opt => {
+                    const btn = document.createElement('button');
+                    btn.className = 'opt-btn';
+                    btn.innerHTML = opt;
+                    
+                    btn.onclick = () => {
+                        if (btn.classList.contains('selected')) {
+                            if (q.id === 6) {
+                                stopPopBGM();
+                            }
+                            nextQuestion();
+                        } else {
+                            const allBtns = container.querySelectorAll('.opt-btn');
+                            allBtns.forEach(b => b.classList.remove('selected'));
+                            btn.classList.add('selected');
+                        }
+                    };
+                    container.appendChild(btn);
+                });
+            }
+        }
+
+        function nextQuestion() {
+            stopGlitchLoop();
+            stopTvNoiseEffect();
+
+            currentQIndex++;
+            if (currentQIndex < questions.length) {
+                renderQuestion();
+            } else {
+                showLoading();
+            }
+        }
+
+        function showLoading() {
+            document.getElementById('quiz-screen').classList.remove('active');
+            document.getElementById('loading-screen').classList.add('active');
+
+            setTimeout(() => {
+                showHalloweenReveal();
+            }, 2500);
+        }
+
+        // --- クライマックスホラー演出シーケンス ---
+        function showHalloweenReveal() {
+            document.body.classList.remove('dark-mode');
+            document.getElementById('app-container').style.display = 'none';
+            document.getElementById('blood-overlay').style.display = 'none';
+            
+            const horrorCanvas = document.getElementById('horror-canvas');
+            horrorCanvas.style.display = 'flex';
+
+            playHorrorDrone();
+
+            const textLines = [
+                `･････[診断完了]･････`,
+                `対象者：${userName}`,
+                `..................`
+            ];
+
+            const typewriterElem = document.getElementById('horror-typewriter');
+            let lineIdx = 0;
+            let charIdx = 0;
+
+            function typeNextChar() {
+                if (lineIdx < textLines.length) {
+                    const currentLine = textLines[lineIdx];
+                    if (charIdx < currentLine.length) {
+                        typewriterElem.textContent += currentLine.charAt(charIdx);
+                        charIdx++;
+                        playGlitchSound();
+                        setTimeout(typeNextChar, Math.random() * 80 + 50);
+                    } else {
+                        typewriterElem.textContent += '\n';
+                        lineIdx++;
+                        charIdx = 0;
+                        setTimeout(typeNextChar, 400);
+                    }
+                } else {
+                    setTimeout(fillRunAwayWall, 800);
+                }
+            }
+
+            typeNextChar();
+        }
+
+        function fillRunAwayWall() {
+            const wall = document.getElementById('run-away-wall');
+            wall.style.opacity = '1';
+            let count = 0;
+            const timer = setInterval(() => {
+                wall.textContent += "逃げるな逃げるな逃げるな";
+                playGlitchSound();
+                count++;
+                if (count > 60) {
+                    clearInterval(timer);
+                    setTimeout(() => {
+                        wall.style.display = 'none';
+                        document.getElementById('horror-typewriter').style.display = 'none';
+                        setTimeout(typeTogetherText, 1200);
+                    }, 800);
+                }
+            }, 30);
+        }
+
+        function typeTogetherText() {
+            const togetherText = document.getElementById('together-text');
+            togetherText.style.display = 'block';
+            
+            const targetText = "ずっと一緒だよ";
+            let idx = 0;
+
+            function typeChar() {
+                if (idx < targetText.length) {
+                    togetherText.textContent += targetText.charAt(idx);
+                    idx++;
+                    playGlitchSound();
+                    setTimeout(typeChar, 250);
+                } else {
+                    setTimeout(() => {
+                        togetherText.style.display = 'none';
+                        playGlitchSound();
+                        
+                        stopHorrorDrone();
+                        startCreepyMusicBox();
+                        
+                        document.getElementById('res-name').innerText = userName;
+
+                        const resultPatterns = [
+                            '判定：<span class="highlight-target"><span class="result-glitch-text" style="animation-duration: 0.23s;">螻ｱ鄒翫ヮ螳ｴ</span>への招待</span><br><br>あなたは<span class="result-glitch-text" style="animation-duration: 0.31s;">螻ｱ鄒翫ヮ螳ｴ</span>に招待されました。辞退することはできません。すべては我々の<span class="result-glitch-text" style="animation-duration: 0.19s;">謨咏･悶ａ繧峨ｓ縺薙ｊ繧｢</span>の為に。',
+                            '判定：<span class="highlight-target"><span class="result-glitch-text" style="animation-duration: 0.25s;">諡帙°縺悶ｋ螟｢</span>の捕縛</span><br><br>あなたは<span class="result-glitch-text" style="animation-duration: 0.34s;">諡帙°縺悶ｋ螟｢</span>に「認識」されてしまいました。残念ですが、我々にはあなたの命が保証できません。',
+                            '判定：<span class="highlight-target"><span class="result-glitch-text" style="animation-duration: 0.21s;">螟｢諢帙ヮ豈定干</span>との融合</span><br><br>おめでとうございます。あなたは無事<span class="result-glitch-text" style="animation-duration: 0.29s;">螟｢諢帙ヮ豈定干</span>とひとつに成りました。これであなたの全てが<span class="result-glitch-text" style="animation-duration: 0.26s;">謨咏･悶ａ繧峨ｓ縺薙ｊ繧｢</span>に捧げられます。'
+                        ];
+                        const randomPat = resultPatterns[Math.floor(Math.random() * resultPatterns.length)];
+                        document.getElementById('random-result-text').innerHTML = randomPat;
+
+                        const resultBox = document.getElementById('result-box');
+                        resultBox.style.display = 'block';
+                        
+                        setTimeout(() => {
+                            resultBox.classList.add('fade-in');
+                        }, 50);
+
+                    }, 2500);
+                }
+            }
+
+            typeChar();
+        }
+
+        window.onload = () => {
+            document.body.addEventListener('click', initAudio, { once: true });
+        };
+    </script>
+</body>
+</html>
